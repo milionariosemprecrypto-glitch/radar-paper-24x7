@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crypto Antecipation Desk</title>
+<style>
+:root{--bg:#0b0f17;--p:#121826;--p2:#182033;--t:#e6ebf5;--m:#8a96ad;--g:#22c55e;--r:#ef4444;--y:#f59e0b;--b:#3b82f6;--line:#243049}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif}
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--p);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+h1{font-size:17px;margin:0}.badge{padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600}
+.paper{background:#3b2f0b;color:#fbbf24;border:1px solid #7c5c10}.est{background:#2a1846;color:#c4b5fd;border:1px solid #5b3e94}.real{background:#0f2e1c;color:#4ade80;border:1px solid #1d6b3d}
+nav{display:flex;gap:4px;padding:8px 16px;background:var(--p);border-bottom:1px solid var(--line);overflow:auto}
+nav button{background:none;border:1px solid transparent;color:var(--m);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px;white-space:nowrap}
+nav button.on{background:var(--p2);color:var(--t);border-color:var(--line)}
+main{padding:14px 16px;max-width:1500px;margin:auto}.tab{display:none}.tab.on{display:block}
+.grid{display:grid;gap:12px}.g5{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+.card{background:var(--p);border:1px solid var(--line);border-radius:12px;padding:12px}
+.card h3{margin:0 0 8px;font-size:14px;color:var(--m);font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.big{font-size:22px;font-weight:700}.up{color:var(--g)}.dn{color:var(--r)}.mut{color:var(--m)}.small{font-size:12px}
+.help{background:#0f1a2e;border:1px dashed #2c4370;color:#a9bbdc;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:13px}
+.bar{height:8px;background:#1f2940;border-radius:9px;position:relative;overflow:hidden;margin:6px 0}.bar i{position:absolute;top:0;bottom:0}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--m);font-weight:600}
+canvas{width:100%;display:block}.sel{background:var(--p2);color:var(--t);border:1px solid var(--line);border-radius:8px;padding:6px}
+.pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;margin:1px;background:#1f2940;color:#b7c3da}
+.sig{border-left:4px solid var(--m)}.sig.entrada{border-left-color:var(--b)}.sig.alerta{border-left-color:var(--y)}
+.st-ok{color:var(--g)}.st-erro{color:var(--r)}.st-bloqueado{color:var(--y)}.st-desligado{color:var(--m)}
+a{color:#7fb0ff}
+</style></head><body>
+<header><h1>📡 Crypto Antecipation Desk</h1><span class="badge paper">MODO SIMULAÇÃO (PAPER) – nenhuma ordem real</span>
+<span class="small mut" id="clock">conectando…</span><span style="flex:1"></span>
+<label class="small mut">Ativo: <select id="asset" class="sel"></select></label></header>
+<nav id="nav"></nav>
+<main>
+<section class="tab" id="t-overview">
+ <div class="help">👋 <b>Como ler:</b> cada cartão mostra o preço e um <b>Score de −100 a +100</b>. Positivo (verde) = forças a favor de ALTA; negativo (vermelho) = forças a favor de BAIXA. <b>NEUTRO</b> (|score|&lt;30) = fique de fora. <b>Confluências</b> = quantos grupos independentes concordam (precisa de 3 ou mais para virar sinal).</div>
+ <div class="grid g5" id="cards"></div>
+ <div class="grid g2" style="margin-top:12px"><div class="card"><h3>Por que o score está assim? <span id="ov-sym"></span></h3><div id="factors"></div></div>
+ <div class="card"><h3>Preço 15m + médias (EMA 9/21/50) <span class="badge real">REAL</span></h3><canvas id="c-price" height="260"></canvas></div></div>
+ <div class="card" style="margin-top:12px"><h3>Status das fontes de dados</h3><div id="sources"></div></div>
+</section>
+<section class="tab" id="t-derivs">
+ <div class="help"><b>Derivativos</b> = contratos futuros. <b>Open Interest (OI)</b> = total de dinheiro em posições abertas. OI subindo + preço subindo = dinheiro novo comprando (continuação). OI subindo + preço caindo = vendedores entrando (pressão vendedora). <b>Funding</b> = taxa que comprados pagam aos vendidos (positivo) ou o contrário; muito alto = mercado lotado de um lado. <b>Long/Short</b> = proporção de contas compradas vs vendidas (sinal contrário nos extremos). <b>Basis</b> = diferença entre preço do futuro e o preço à vista.</div>
+ <div class="grid g2"><div class="card"><h3>OI por exchange (agora) <span class="badge real">REAL</span></h3><div id="oi-ex"></div></div>
+ <div class="card"><h3>Funding por exchange (por 8h) <span class="badge real">REAL</span></h3><div id="fund-ex"></div></div>
+ <div class="card"><h3>OI OKX – últimas 24h (5m) <span class="badge real">REAL</span></h3><canvas id="c-oi" height="200"></canvas></div>
+ <div class="card"><h3>Razão Long/Short de contas (OKX) <span class="badge real">REAL</span></h3><canvas id="c-ls" height="200"></canvas></div>
+ <div class="card"><h3>Histórico de funding OKX <span class="badge real">REAL</span></h3><canvas id="c-fh" height="180"></canvas></div>
+ <div class="card"><h3>Basis e resumo</h3><div id="deriv-sum"></div></div></div>
+</section>
+<section class="tab" id="t-liq">
+ <div class="help"><b>Liquidação</b> = quando a exchange fecha à força uma posição alavancada que perdeu demais. Muitos <b>longs</b> liquidados = queda forçada; muitos <b>shorts</b> liquidados = alta forçada (“squeeze”). Um pico só de um lado costuma indicar <b>exaustão</b>. O <b>mapa de calor</b> abaixo é uma <b>ESTIMATIVA</b> nossa de onde haveria liquidações (o preço tende a ser “atraído” para essas zonas). Não é dado real de posições.</div>
+ <div class="grid g2"><div class="card"><h3>Mapa de calor de liquidações <span class="badge est">ESTIMATIVA</span></h3><canvas id="c-heat" height="420"></canvas><div class="small mut" id="heat-note"></div></div>
+ <div class="card"><h3>Liquidações reais recentes <span class="badge real">REAL</span></h3><div id="liq-sum"></div><div style="max-height:380px;overflow:auto"><table id="liq-tbl"></table></div></div></div>
+</section>
+<section class="tab" id="t-whales">
+ <div class="help"><b>Baleias</b> = transferências muito grandes. Moeda <b>indo para exchange</b> = possível venda (risco). Moeda <b>saindo da exchange</b> = guardando (acumulação). <b>Stablecoin indo para exchange</b> = dinheiro pronto para comprar. Fonte grátis: canal público do Whale Alert no Telegram (pode atrasar e não tem todos os dados).</div>
+ <div class="card"><h3>Movimentos grandes <span class="badge real">REAL (público, atraso possível)</span></h3><div style="max-height:640px;overflow:auto"><table id="wh-tbl"></table></div></div>
+</section>
+<section class="tab" id="t-flow">
+ <div class="help"><b>Fluxo</b> mostra quem está sendo agressivo. <b>CVD</b> = soma de compras a mercado menos vendas a mercado: subindo = compradores apressados; caindo = vendedores apressados. <b>Livro de ofertas</b>: mais ordens de compra perto do preço = suporte; “paredes” = ordens grandes paradas.</div>
+ <div class="grid g2"><div class="card"><h3>CVD (1 min, desde que o painel ligou) <span class="badge real">REAL</span></h3><canvas id="c-cvd" height="220"></canvas><div id="flow-sum" class="small"></div></div>
+ <div class="card"><h3>Livro de ofertas OKX <span class="badge real">REAL</span></h3><div id="book"></div></div>
+ <div class="card"><h3>Compra vs venda agressiva (taker, 5m) <span class="badge real">REAL</span></h3><canvas id="c-taker" height="200"></canvas></div></div>
+</section>
+<section class="tab" id="t-news">
+ <div class="help"><b>Narrativa</b>: notícias e posts que podem mexer no preço (Trump, Musk, juros, guerra, ETF, hacks…). <b>Importante:</b> notícia sozinha <u>nunca</u> gera entrada — só alerta. Esperamos o preço, o volume e o CVD confirmarem. Sem chave da API do X, usamos Google News + Cointelegraph (grátis).</div>
+ <div class="card"><h3>Feed <span class="small mut">sentimento/impacto por palavras‑chave (regra simples, não é IA)</span></h3><div style="max-height:680px;overflow:auto"><table id="news-tbl"></table></div></div>
+</section>
+<section class="tab" id="t-signals">
+ <div class="help"><b>SINAL DE ENTRADA</b> (azul) = 3+ confluências e score forte — mostra entrada, stop, alvos e risco. <b>ALERTA DE ATENÇÃO</b> (amarelo) = algo importante, mas <u>não</u> é para entrar ainda. Tudo é <b>simulação</b>: risco máx. 0,5% por operação e alavancagem máx. 3x.</div>
+ <div class="grid g2" id="sig-cards"></div>
+ <div class="grid g2" style="margin-top:12px"><div class="card"><h3>Gestão de risco (simulada)</h3><div id="risk"></div></div>
+ <div class="card"><h3>Caderno de operações simuladas</h3><div id="paper"></div></div>
+ <div class="card"><h3>Histórico de alertas</h3><div style="max-height:300px;overflow:auto"><table id="alert-tbl"></table></div></div></div>
+</section>
+</main>
+<script>
+const TABS=[["overview","Visão Geral"],["derivs","Derivativos"],["liq","Liquidações"],["whales","Baleias"],["flow","Fluxo"],["news","Narrativa/X"],["signals","Sinais"]];
+let SNAP=null,SYM=localStorage.sym||"BTC",TAB=location.hash.slice(1)||"overview",ASSET=null;
+const $=id=>document.getElementById(id);
+const fmt=(v,d=2)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("pt-BR",{maximumFractionDigits:d,minimumFractionDigits:Math.min(d,2)});
+const px=v=>v==null?"—":v>=1000?fmt(v,1):v>=1?fmt(v,4):fmt(v,5);
+const usd=v=>v==null?"—":Math.abs(v)>=1e9?"$"+fmt(v/1e9,2)+" bi":Math.abs(v)>=1e6?"$"+fmt(v/1e6,1)+" mi":Math.abs(v)>=1e3?"$"+fmt(v/1e3,0)+" mil":"$"+fmt(v,0);
+const tm=ts=>new Date(ts).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+const dtm=ts=>new Date(ts).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+const cls=v=>v>0?"up":v<0?"dn":"mut";
+$("nav").innerHTML=TABS.map(([k,l])=>`<button data-k="${k}">${l}</button>`).join("");
+$("nav").onclick=e=>{if(e.target.dataset.k){TAB=e.target.dataset.k;location.hash=TAB;show();}};
+function show(){document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.k==TAB));document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.id=="t-"+TAB));renderAsset();}
+$("asset").onchange=e=>{SYM=e.target.value;localStorage.sym=SYM;loadAsset();};
+function canvasCtx(id){const c=$(id);const r=window.devicePixelRatio||1;const w=c.clientWidth,h=+c.getAttribute("height");c.width=w*r;c.height=h*r;c.style.height=h+"px";const x=c.getContext("2d");x.scale(r,r);x.clearRect(0,0,w,h);x.font="11px system-ui";return [x,w,h];}
+function line(id,series,opt={}){const [x,w,h]=canvasCtx(id);const all=series.flatMap(s=>s.pts.map(p=>p[1])).filter(v=>v!=null);if(!all.length){x.fillStyle="#8a96ad";x.fillText("aguardando dados…",10,20);return;}
+ let mn=Math.min(...all),mx=Math.max(...all);if(opt.zero){mn=Math.min(mn,0);mx=Math.max(mx,0)}if(mn==mx){mn-=1;mx+=1}const pad=(mx-mn)*.08;mn-=pad;mx+=pad;
+ const ts=series.flatMap(s=>s.pts.map(p=>p[0]));const t0=Math.min(...ts),t1=Math.max(...ts)||t0+1;const L=58,R=8,T=8,B=18;
+ const X=t=>L+(t-t0)/((t1-t0)||1)*(w-L-R),Y=v=>T+(mx-v)/(mx-mn)*(h-T-B);
+ x.strokeStyle="#243049";x.fillStyle="#8a96ad";for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4;x.beginPath();x.moveTo(L,Y(v));x.lineTo(w-R,Y(v));x.stroke();x.fillText((opt.f||fmt)(v),2,Y(v)+4);}
+ x.fillText(tm(t0),L,h-4);x.fillText(tm(t1),w-R-34,h-4);
+ if(opt.zero){x.strokeStyle="#55617a";x.beginPath();x.moveTo(L,Y(0));x.lineTo(w-R,Y(0));x.stroke();}
+ for(const s of series){x.strokeStyle=s.c;x.lineWidth=s.lw||1.5;x.beginPath();s.pts.forEach((p,i)=>{if(p[1]==null)return;i?x.lineTo(X(p[0]),Y(p[1])):x.moveTo(X(p[0]),Y(p[1]))});x.stroke();x.lineWidth=1;}
+ if(opt.candles){const cw=Math.max(1,(w-L-R)/opt.candles.length*.7);for(const r of opt.candles){x.strokeStyle=x.fillStyle=r[4]>=r[1]?"#22c55e":"#ef4444";x.beginPath();x.moveTo(X(r[0]),Y(r[2]));x.lineTo(X(r[0]),Y(r[3]));x.stroke();x.fillRect(X(r[0])-cw/2,Y(Math.max(r[1],r[4])),cw,Math.max(1,Math.abs(Y(r[1])-Y(r[4]))));}}
+ if(opt.legend){let lx=L+6;for(const s of series){x.fillStyle=s.c;x.fillText(s.n,lx,T+12);lx+=x.measureText(s.n).width+14;}}
+ if(opt.hlines)for(const hl of opt.hlines){if(hl.v<mn||hl.v>mx)continue;x.strokeStyle=hl.c;x.setLineDash([4,4]);x.beginPath();x.moveTo(L,Y(hl.v));x.lineTo(w-R,Y(hl.v));x.stroke();x.setLineDash([]);x.fillStyle=hl.c;x.fillText(hl.n,w-R-80,Y(hl.v)-3);}}
+function ema(v,n){const k=2/(n+1);let o=[],e=v[0];for(const x of v){e=x*k+e*(1-k);o.push(e)}return o}
+function renderCards(){if(!SNAP)return;$("cards").innerHTML=SNAP.assets.map(a=>{const s=a.score??0,w=Math.abs(s)/2;
+ return `<div class="card" style="cursor:pointer;${a.sym==SYM?'border-color:#3b82f6':''}" onclick="SYM='${a.sym}';$('asset').value=SYM;localStorage.sym=SYM;loadAsset()">
+ <h3><span>${a.sym}/USDT</span><span class="badge ${a.status=='FORTE'?(s>0?'real':'paper'):a.status=='MODERADO'?'paper':''}" style="${a.status=='NEUTRO'?'background:#1f2940;color:#8a96ad':''}">${a.status||'…'}</span></h3>
+ <div class="big">${px(a.price)} <span class="small ${cls(a.chg_24h)}">${a.chg_24h==null?"":(a.chg_24h>0?"+":"")+fmt(a.chg_24h)+"% 24h"}</span></div>
+ <div class="small">Score: <b class="${cls(s)}">${a.score==null?"calculando…":(s>0?"+":"")+fmt(s,1)}</b> ${a.direction&&a.direction!='—'?'→ viés de '+a.direction:''}</div>
+ <div class="bar"><i style="left:50%;width:1px;background:#55617a"></i><i style="${s>=0?'left:50%':'right:50%'};width:${w}%;background:${s>=0?'var(--g)':'var(--r)'}"></i></div>
+ <div class="small mut">Confluências: <b style="color:var(--t)">${a.confluences.length}</b>/6 ${a.confluences.map(c=>`<span class="pill">${c}</span>`).join("")}</div>
+ <div class="small mut">OI total ${usd(a.oi_total)} · funding ${a.funding_avg==null?"—":fmt(a.funding_avg*100,4)+"%"} · ATR15 ${a.atr_pct==null?"—":fmt(a.atr_pct,2)+"%"}</div>
+ <div class="small">${a.signal=='entrada'?'🔵 <b>SINAL DE ENTRADA (simulado)</b>':a.signal=='alerta'?'🟡 <b>Alerta de atenção</b>':'⚪ Sem sinal'}</div></div>`}).join("");
+ const src=SNAP.sources;$("sources").innerHTML=`<table><tr><th>Fonte</th><th>Status</th><th>Detalhe</th><th>Tipo</th><th>Atualizado</th></tr>`+Object.entries(src).sort().map(([k,v])=>`<tr><td>${k}</td><td class="st-${v.status}">● ${v.status}</td><td class="small">${v.detail}</td><td class="small mut">${v.kind}</td><td class="small mut">${tm(v.ts)}</td></tr>`).join("")+"</table>";
+ $("clock").textContent="Atualizado "+new Date(SNAP.ts).toLocaleTimeString("pt-BR")+" (horário de Brasília)";
+ renderSignals();}
+function renderSignals(){const sg=SNAP.signals.slice().sort((a,b)=>({entrada:0,alerta:1,nenhum:2}[a.kind]-{entrada:0,alerta:1,nenhum:2}[b.kind]));
+ $("sig-cards").innerHTML=sg.map(s=>`<div class="card sig ${s.kind}"><h3><span>${s.sym} · ${s.title}</span><span class="${cls(s.score)}">score ${fmt(s.score,1)}</span></h3>
+ <div>${s.explain||""}</div>${s.kind=='entrada'?`<table style="margin-top:6px"><tr><th>Entrada</th><td>${s.entry}</td></tr><tr><th>Stop</th><td class="dn">${px(s.stop)}</td></tr><tr><th>Alvo 1 / Alvo 2</th><td class="up">${px(s.t1)} / ${px(s.t2)}</td></tr><tr><th>Risco</th><td>${s.risk_pct}% da banca · alavancagem máx. ${s.leverage_max}x</td></tr><tr><th>Invalidação</th><td>${s.invalidation}</td></tr></table>`:""}
+ ${s.alerts&&s.alerts.length?`<div class="small" style="color:var(--y);margin-top:6px">⚠ ${s.alerts.join("<br>⚠ ")}</div>`:""}
+ <div class="small mut" style="margin-top:6px"><b>Motivos principais:</b><br>• ${(s.why||[]).join("<br>• ")||"—"}</div>
+ <div class="small mut">Confluências (${s.confluences.length}): ${s.confluences.map(c=>`<span class="pill">${c}</span>`).join("")||"nenhuma"}</div></div>`).join("");
+ $("alert-tbl").innerHTML="<tr><th>Hora</th><th>Tipo</th><th>Ativo</th><th>Texto</th><th>Enviado?</th></tr>"+SNAP.alerts.map(a=>`<tr><td>${tm(a.ts)}</td><td>${a.level}</td><td>${a.sym}</td><td class="small">${a.text}</td><td>${a.sent?"sim":"só painel"}</td></tr>`).join("");}
+async function loadAsset(){try{ASSET=await (await fetch("/api/asset/"+SYM)).json();renderAsset();renderCards();}catch(e){}}
+function renderAsset(){const d=ASSET;if(!d||!d.price)return;$("ov-sym").textContent=SYM;
+ if(TAB=="overview"){const sc=d.score;if(sc)$("factors").innerHTML=`<div class="small mut">Soma bruta ${fmt(sc.raw,1)} × confiança ${sc.mult} ${sc.notes.length?"("+sc.notes.join("; ")+")":""} = <b class="${cls(sc.score)}">${fmt(sc.score,1)}</b></div><table>`+sc.factors.map(f=>`<tr><td style="width:110px">${f.key.replace("_"," ")}<div class="small mut">${f.group}</div></td><td style="width:70px" class="${cls(f.points)}"><b>${f.points>0?"+":""}${fmt(f.points,1)}</b><span class="small mut">/${f.max}</span></td><td class="small">${f.text}</td></tr>`).join("")+"</table>";
+  const c=d.candles15.slice(-96),cl=c.map(r=>r[4]),all=d.candles15.map(r=>r[4]),off=all.length-c.length;const e=n=>ema(all,n).slice(off).map((v,i)=>[c[i][0],v]);
+  line("c-price",[{n:"EMA9",c:"#facc15",pts:e(9)},{n:"EMA21",c:"#60a5fa",pts:e(21)},{n:"EMA50",c:"#c084fc",pts:e(50)}],{candles:c,f:px,legend:1,hlines:d.signal&&d.signal.kind=="entrada"?[{v:d.signal.stop,c:"#ef4444",n:"stop"},{v:d.signal.t1,c:"#22c55e",n:"alvo 1"},{v:d.signal.t2,c:"#22c55e",n:"alvo 2"}]:[]});}
+ if(TAB=="derivs"){const tot=Object.values(d.oi).reduce((a,b)=>a+b.usd,0);$("oi-ex").innerHTML="<table>"+Object.entries(d.oi).sort((a,b)=>b[1].usd-a[1].usd).map(([k,v])=>`<tr><td>${k}</td><td>${usd(v.usd)}</td><td style="width:45%"><div class="bar"><i style="left:0;width:${v.usd/tot*100}%;background:var(--b)"></i></div></td></tr>`).join("")+`<tr><th>Total (exchanges livres)</th><th>${usd(tot)}</th><td></td></tr></table><div class="small mut">Binance/Bybit aparecem quando acessíveis do seu PC (bloqueadas em alguns países/servidores).</div>`;
+  $("fund-ex").innerHTML="<table>"+Object.entries(d.funding).map(([k,v])=>`<tr><td>${k}</td><td class="${v>0.0005?'dn':v<-0.0003?'up':''}">${fmt(v*100,4)}%</td><td class="small mut">${v>0.0005?"alto: comprados lotados":v<-0.0003?"negativo: vendidos lotados":"normal"}</td></tr>`).join("")+"</table><div class='small mut'>Hyperliquid cobra por hora; mostramos ×8 para comparar.</div>";
+  line("c-oi",[{n:"OI USD",c:"#60a5fa",pts:d.oi_hist}],{f:usd});line("c-ls",[{n:"L/S",c:"#f59e0b",pts:d.ls_hist}],{f:v=>fmt(v,2)});
+  line("c-fh",[{n:"funding",c:"#c084fc",pts:d.funding_hist.map(p=>[p[0],p[1]*100])}],{zero:1,f:v=>fmt(v,4)+"%"});
+  const sc=d.score||{factors:[]};const g=k=>(sc.factors.find(f=>f.key==k)||{}).text||"—";
+  $("deriv-sum").innerHTML=`<p><b>Basis OKX:</b> ${d.basis==null?"—":fmt(d.basis*100,4)+"%"} <span class="small mut">(futuro ${d.basis>0?"acima":"abaixo"} do índice à vista)</span></p><p><b>OI × preço:</b> ${g("oi_preco")}</p><p><b>Funding:</b> ${g("funding")}</p><p><b>Long/Short:</b> ${g("long_short")}</p>`;}
+ if(TAB=="liq"){const h=d.heatmap;const [x,w,H]=canvasCtx("c-heat");if(!h){x.fillStyle="#8a96ad";x.fillText("aguardando dados…",10,20);}else{
+  const n=h.grid.length,rowH=(H-10)/n,mxv=Math.max(...h.longs,...h.shorts,1),mr=Math.max(...h.real_liqs,1),L=70,half=(w-L)/2;
+  x.fillStyle="#8a96ad";x.fillText("← longs (liquidam se CAIR)",L,10);x.fillText("shorts (liquidam se SUBIR) →",L+half+4,10);
+  for(let i=0;i<n;i++){const y=H-(i+1)*rowH;const lv=h.longs[i]/mxv,sv=h.shorts[i]/mxv;
+   x.fillStyle=`rgba(239,68,68,${.15+lv*.85})`;x.fillRect(L+half-lv*half,y,lv*half,rowH-1);x.fillStyle=`rgba(34,197,94,${.15+sv*.85})`;x.fillRect(L+half,y,sv*half,rowH-1);
+   if(h.real_liqs[i]>0){x.fillStyle="#facc15";x.fillRect(L-8,y,6*Math.min(1,h.real_liqs[i]/mr)+2,rowH-1);}
+   if(i%6==0){x.fillStyle="#8a96ad";x.fillText(px(h.grid[i]),2,y+rowH);}}
+  const pi=(d.price-h.grid[0])/(h.grid[1]-h.grid[0]);const py=H-(pi+.5)*rowH;x.strokeStyle="#fff";x.setLineDash([5,3]);x.beginPath();x.moveTo(L,py);x.lineTo(w,py);x.stroke();x.setLineDash([]);x.fillStyle="#fff";x.fillText("preço "+px(d.price),w-110,py-4);
+  $("heat-note").innerHTML=`<b>ESTIMATIVA</b> — ${h.method} Barras amarelas à esquerda = liquidações <b>reais</b> já ocorridas naquele preço. Zonas mais fortes acima: ${h.short_clusters.map(c=>px(c.price)).join(", ")||"—"} · abaixo: ${h.long_clusters.map(c=>px(c.price)).join(", ")||"—"}.`;}
+  $("liq-sum").innerHTML=`<p>Última 1h: longs liquidados <b class="dn">${usd(d.liq_1h.long)}</b> · shorts liquidados <b class="up">${usd(d.liq_1h.short)}</b></p>`;
+  $("liq-tbl").innerHTML="<tr><th>Hora</th><th>Exchange</th><th>Lado liquidado</th><th>Preço</th><th>Valor</th></tr>"+d.liqs.slice(0,150).map(l=>`<tr><td>${tm(l[0])}</td><td>${l[4]}</td><td class="${l[1]=='long'?'dn':'up'}">${l[1]}</td><td>${px(l[2])}</td><td>${usd(l[3])}</td></tr>`).join("");}
+ if(TAB=="flow"){line("c-cvd",[{n:"CVD USD",c:"#22c55e",pts:d.cvd_series}],{zero:1,f:usd});
+  $("flow-sum").innerHTML=`CVD 5m: <b class="${cls(d.cvd_5m)}">${usd(d.cvd_5m)}</b> · CVD 15m: <b class="${cls(d.cvd_15m)}">${usd(d.cvd_15m)}</b> · taker 1h: ${d.taker_ratio_1h==null?"—":fmt(d.taker_ratio_1h*100,0)+"% compra"} · volume 15m vs média: ${d.vol_ratio==null?"—":fmt(d.vol_ratio,2)+"x"} <span class="mut">(${d.trades_buffer} trades no buffer)</span>`;
+  const dp=d.depth||{};$("book").innerHTML=dp.bands?`<table><tr><th>Faixa</th><th>Compras</th><th>Vendas</th><th>Desequilíbrio</th></tr>`+Object.entries(dp.bands).map(([k,b])=>`<tr><td>±${k}</td><td class="up">${usd(b.bids_usd)}</td><td class="dn">${usd(b.asks_usd)}</td><td class="${cls(b.imbalance)}">${fmt(b.imbalance*100,0)}% ${b.imbalance>0?"(mais compra)":"(mais venda)"}</td></tr>`).join("")+`</table><p class="small"><b>Paredes de compra:</b> ${dp.bid_walls.map(w=>px(w[0])+" ("+usd(w[1])+")").join(" · ")}<br><b>Paredes de venda:</b> ${dp.ask_walls.map(w=>px(w[0])+" ("+usd(w[1])+")").join(" · ")}</p>`:"aguardando…";
+  line("c-taker",[{n:"% compra agressiva",c:"#60a5fa",pts:d.taker.map(t=>[t[0],t[1]/(t[1]+t[2])*100])}],{f:v=>fmt(v,0)+"%",hlines:[{v:50,c:"#55617a",n:"50%"}]});}}
+async function loadLists(){try{if(TAB=="whales"){const w=await (await fetch("/api/whales")).json();$("wh-tbl").innerHTML="<tr><th>Hora</th><th>Moeda</th><th>Valor</th><th>De → Para</th><th>Classificação</th><th>O que significa</th></tr>"+w.map(e=>`<tr><td>${dtm(e.ts)}</td><td>${e.symbol}</td><td><b>${usd(e.usd)}</b></td><td class="small">${e.from_owner||"?"} → ${e.to_owner||"?"}</td><td class="${e.effect>0?'up':e.effect<0?'dn':'mut'}">${e.classification}</td><td class="small">${e.impact} ${e.url?`<a href="${e.url}" target="_blank">fonte</a>`:""}</td></tr>`).join("");}
+ if(TAB=="news"){const n=await (await fetch("/api/news")).json();$("news-tbl").innerHTML="<tr><th>Hora</th><th>Fonte</th><th>Título</th><th>Sentimento</th><th>Impacto</th><th>Palavras‑chave</th></tr>"+n.map(e=>`<tr><td>${dtm(e.ts)}</td><td class="small">${e.author}</td><td><a href="${e.url}" target="_blank">${e.title}</a> ${e.assets.map(a=>`<span class="pill">${a}</span>`).join("")}</td><td class="${e.sentiment=='positivo'?'up':e.sentiment=='negativo'?'dn':'mut'}">${e.sentiment}</td><td>${e.impact=='alto'?'🔴 alto':e.impact=='médio'?'🟠 médio':'baixo'}</td><td class="small mut">${e.keywords.join(", ")}</td></tr>`).join("");}
+ if(TAB=="signals"){const p=await (await fetch("/api/paper")).json();const r=p.risco,c=p.caderno;
+  $("risk").innerHTML=`<table><tr><th>Modo</th><td><span class="badge paper">${r.modo}</span></td></tr><tr><th>Resultado do dia</th><td class="${cls(r.pnl_dia_pct)}">${fmt(r.pnl_dia_pct,2)}% (limite −${r.limites.perda_diaria_pct}%)</td></tr><tr><th>Operações hoje</th><td>${r.operacoes_hoje} de ${r.limites.max_operacoes}</td></tr><tr><th>Perdas seguidas</th><td>${r.perdas_seguidas} (pausa em ${r.limites.max_perdas_seguidas})</td></tr><tr><th>Cooldown por ativo</th><td>${r.limites.cooldown_min} min</td></tr><tr><th>Alavancagem máxima</th><td>${r.limites.alavancagem_max}x</td></tr></table>`;
+  $("paper").innerHTML=`<p>Fechadas: <b>${c.total}</b> · acertos ${c.acertos} (${c.taxa_acerto??"—"}%) · soma <b class="${cls(c.soma_R)}">${fmt(c.soma_R,2)}R</b> <span class="small mut">(R = quanto você arriscou)</span></p><table><tr><th>Ativo</th><th>Lado</th><th>Entrada</th><th>Stop</th><th>Alvos</th><th>Status</th><th>Resultado</th></tr>`+c.abertas.concat(c.fechadas.slice().reverse()).map(t=>`<tr><td>${t.sym}</td><td>${t.direction=="ALTA"?"compra":"venda"}</td><td>${px(t.entry_px)}</td><td>${px(t.stop)}</td><td>${px(t.t1)}/${px(t.t2)}</td><td>${t.status}</td><td class="${cls(t.result_r)}">${t.result_r==null?"—":fmt(t.result_r,2)+"R"}</td></tr>`).join("")+"</table>";}}catch(e){}}
+function connect(){const ws=new WebSocket((location.protocol=="https:"?"wss://":"ws://")+location.host+"/ws");ws.onmessage=m=>{SNAP=JSON.parse(m.data);
+ if(!$("asset").options.length){$("asset").innerHTML=SNAP.assets.map(a=>`<option>${a.sym}</option>`).join("");$("asset").value=SYM;}renderCards();};ws.onclose=()=>{$("clock").textContent="reconectando…";setTimeout(connect,3000)};}
+connect();show();loadAsset();setInterval(loadAsset,5000);setInterval(loadLists,10000);window.addEventListener("hashchange",()=>{TAB=location.hash.slice(1)||"overview";show();loadLists();});
+document.querySelector("nav").addEventListener("click",()=>setTimeout(loadLists,50));window.addEventListener("resize",renderAsset);
+</script></body></html>

@@ -1,0 +1,238 @@
+{
+ "window": [
+  1784563200000,
+  1792335599999
+ ],
+ "days": 90.0,
+ "rows": [
+  {
+   "name": "Buy & Hold BTC",
+   "final": 1234.4999854728783,
+   "pnl": 234.49998547287828,
+   "pct": 23.449998547287834,
+   "trades": 1,
+   "closed": 0,
+   "win": null,
+   "mdd": 7.982452064687354,
+   "note": ""
+  },
+  {
+   "name": "FOMO antigo (+20/-10/3d, proxy)",
+   "final": 530.1495336882925,
+   "pnl": -469.85046631170746,
+   "pct": -46.985046631170746,
+   "trades": 262,
+   "closed": 130,
+   "win": 31.53846153846154,
+   "mdd": 63.31884078679059,
+   "note": ""
+  },
+  {
+   "name": "FOMO lançamentos (+50/-25/14d, proxy)",
+   "final": 964.5186877685234,
+   "pnl": -35.481312231476636,
+   "pct": -3.5481312231476636,
+   "trades": 10,
+   "closed": 5,
+   "win": 20.0,
+   "mdd": 18.59771980734142,
+   "note": "0 posição(ões) aberta(s) no fim"
+  },
+  {
+   "name": "Comprar todas as 5 novas e segurar (pesos iguais)",
+   "final": 925.6685142434227,
+   "pnl": -74.33148575657731,
+   "pct": -7.433148575657725,
+   "trades": 10,
+   "closed": 5,
+   "win": 20.0,
+   "mdd": NaN,
+   "note": "benchmark com lookahead (precisa saber N)"
+  }
+ ],
+ "variants": [
+  {
+   "name": "entrada só no dia 2+ (min_age=2)",
+   "final": 781.7126313933727,
+   "pct": -21.82873686066273,
+   "trades": 10,
+   "mdd": 24.03805742730535,
+   "open": 0
+  },
+  {
+   "name": "entrada só no dia 3+ (min_age=3)",
+   "final": 759.8768340087491,
+   "pct": -24.012316599125086,
+   "trades": 10,
+   "mdd": 26.422801564047262,
+   "open": 0
+  },
+  {
+   "name": "só moedas realmente novas (sem renome/listagem tardia)",
+   "final": 1064.9556779605605,
+   "pct": 6.495567796056051,
+   "trades": 4,
+   "mdd": 18.59771980734142,
+   "open": 0
+  },
+  {
+   "name": "alvo +20% / stop -10% / 3d",
+   "final": 984.3790283866629,
+   "pct": -1.5620971613337105,
+   "trades": 10,
+   "mdd": 10.654579828649902,
+   "open": 0
+  },
+  {
+   "name": "alvo +50% sem stop / 14d",
+   "final": 931.3631450051662,
+   "pct": -6.863685499483381,
+   "trades": 10,
+   "mdd": 25.117223713373306,
+   "open": 0
+  },
+  {
+   "name": "alvo +100% / stop -25% / 30d",
+   "final": 1146.2771443866716,
+   "pct": 14.627714438667155,
+   "trades": 9,
+   "mdd": 18.597719807341424,
+   "open": 1
+  },
+  {
+   "name": "incluindo ações tokenizadas (bStocks)",
+   "final": 992.3848077899681,
+   "pct": -0.7615192210031836,
+   "trades": 24,
+   "mdd": 29.074502366086275,
+   "open": 0
+  }
+ ],
+ "universe": [
+  {
+   "sym": "GRAMUSDT",
+   "listed": "2026-07-02",
+   "kind": "crypto",
+   "old": true,
+   "name": "Gram (prev. Toncoin)"
+  },
+  {
+   "sym": "AEROUSDT",
+   "listed": "2026-07-17",
+   "kind": "crypto",
+   "old": true,
+   "name": "Aerodrome Finance"
+  },
+  {
+   "sym": "MARSCOINUSDT",
+   "listed": "2026-09-04",
+   "kind": "crypto",
+   "old": false,
+   "name": "MarsCoin"
+  },
+  {
+   "sym": "牛来USDT",
+   "listed": "2026-09-09",
+   "kind": "crypto",
+   "old": false,
+   "name": "牛来 (Niu Lai)"
+  },
+  {
+   "sym": "HYPEUSDT",
+   "listed": "2026-09-24",
+   "kind": "crypto",
+   "old": true,
+   "name": "Hyperliquid"
+  },
+  {
+   "sym": "RWUSDUSDT",
+   "listed": "2026-10-13",
+   "kind": "stable",
+   "old": false,
+   "name": "RWUSD"
+  }
+ ],
+ "n_stocks": 89,
+ "trades": [
+  [
+   1784592000000,
+   "GRAMUSDT",
+   "BUY",
+   1.437728,
+   333.3333333333333,
+   "LANC proxy: proxy: listada há 19d, vol dia anterior US$ 6M (Gram (prev. Toncoin))"
+  ],
+  [
+   1784678400000,
+   "AEROUSDT",
+   "BUY",
+   0.4559164,
+   333.33333333333337,
+   "LANC proxy: proxy: listada há 5d, vol dia anterior US$ 37M (Aerodrome Finance)"
+  ],
+  [
+   1785805199999,
+   "GRAMUSDT",
+   "SELL",
+   1.305756,
+   302.43324745709896,
+   "saída por tempo (14 dias) (-9.2% bruto)"
+  ],
+  [
+   1785891599999,
+   "AEROUSDT",
+   "SELL",
+   0.4101528,
+   299.57440092087063,
+   "saída por tempo (14 dias) (-10.0% bruto)"
+  ],
+  [
+   1788566400000,
+   "MARSCOINUSDT",
+   "BUY",
+   0.194274,
+   311.57965802097505,
+   "LANC proxy: proxy: listada há 1d, vol dia anterior US$ 51M (MarsCoin)"
+  ],
+  [
+   1788839999999,
+   "MARSCOINUSDT",
+   "SELL",
+   0.14512267799999998,
+   232.51725453712663,
+   "stop loss -25% (-25.3% bruto)"
+  ],
+  [
+   1788998400000,
+   "牛来USDT",
+   "BUY",
+   0.078814,
+   285.1480177748465,
+   "LANC proxy: proxy: listada há 1d, vol dia anterior US$ 24M (牛来 (Niu Lai))"
+  ],
+  [
+   1789070399999,
+   "牛来USDT",
+   "SELL",
+   0.11774811599999999,
+   425.585127417065,
+   "take profit +50% (+49.4% bruto)"
+  ],
+  [
+   1790294400000,
+   "HYPEUSDT",
+   "BUY",
+   92.49852,
+   331.818525946447,
+   "LANC proxy: proxy: listada há 1d, vol dia anterior US$ 25M (Hyperliquid)"
+  ],
+  [
+   1791507599999,
+   "HYPEUSDT",
+   "SELL",
+   84.04248,
+   301.1828186943236,
+   "saída por tempo (14 dias) (-9.1% bruto)"
+  ]
+ ]
+}
